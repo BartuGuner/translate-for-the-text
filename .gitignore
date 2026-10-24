@@ -1,0 +1,24 @@
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest & tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime user data
+userdata/
+
+# Build and raw source cache (only data/dictionary.db is committed)
+build_cache/
+
+# OS artifacts
+.DS_Store
+Thumbs.db

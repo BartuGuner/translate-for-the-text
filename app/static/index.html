@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LexiHover · Offline English → Turkish reading assistant</title>
+  <meta name="description" content="LexiHover: paste English text and hover any word to see its Turkish meaning. Runs fully offline.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235b5bd6'/%3E%3Cpath d='M9 8v16h12' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='22' cy='10' r='3' fill='%23ffc857'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main" data-i18n="skipLink"></a>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6e6af0"/><stop offset="1" stop-color="#b65bd6"/></linearGradient></defs>
+        <rect width="32" height="32" rx="9" fill="url(#lg)"/>
+        <path d="M10 8v16h12" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="22.5" cy="10" r="3" fill="#ffc857"/>
+      </svg>
+      <span class="brand-name" data-i18n="appName"></span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Main">
+      <button class="tab" id="tab-reader" role="tab" data-tab="reader" data-i18n="tabReader"></button>
+      <button class="tab" id="tab-favorites" role="tab" data-tab="favorites" data-i18n="tabFavorites"></button>
+      <button class="tab" id="tab-settings" role="tab" data-tab="settings" data-i18n="tabSettings"></button>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="view" data-view="input" aria-labelledby="input-title">
+      <div class="hero">
+        <h1 id="input-title" data-i18n="inputTitle"></h1>
+        <p class="muted" data-i18n="inputHint"></p>
+      </div>
+      <div class="card input-card">
+        <textarea id="input-text" spellcheck="false" data-i18n-placeholder="inputPlaceholder" data-i18n-label="inputPlaceholder"></textarea>
+        <div class="input-bar">
+          <span id="char-count" class="muted small" aria-live="polite"></span>
+          <div class="actions">
+            <button id="clear-btn" class="btn ghost" type="button" data-i18n="clear"></button>
+            <button id="translate-btn" class="btn primary" type="button">
+              <span class="btn-label" data-i18n="translate"></span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+        <p id="input-error" class="error" role="alert" hidden></p>
+      </div>
+      <p class="busy-note muted small" aria-live="polite" data-i18n="translating"></p>
+    </section>
+
+    <section class="view" data-view="reader" hidden aria-labelledby="reader-title">
+      <div class="reader-bar">
+        <h2 id="reader-title" class="sr-only" data-i18n="tabReader"></h2>
+        <span id="reader-stats" class="muted small"></span>
+        <button id="edit-btn" class="btn ghost" type="button">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          <span data-i18n="edit"></span>
+        </button>
+      </div>
+      <article id="reader-text" class="card reader" lang="en"></article>
+    </section>
+
+    <section class="view" data-view="favorites" hidden aria-labelledby="fav-title">
+      <div class="section-head">
+        <div>
+          <h2 id="fav-title" data-i18n="favTitle"></h2>
+          <p id="fav-count" class="muted small"></p>
+        </div>
+        <div id="fav-tools" class="fav-tools">
+          <label class="search">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input id="fav-search" type="search" data-i18n-placeholder="favSearch" data-i18n-label="favSearch">
+          </label>
+          <a id="fav-export" class="btn ghost" href="/api/favorites/export.csv" download>
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-i18n="favExport"></span>
+          </a>
+        </div>
+      </div>
+      <div id="fav-empty" class="card empty" hidden>
+        <svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.3l-5.7 3 1.1-6.3L2.8 9.5l6.4-.9z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <h3 data-i18n="favEmptyTitle"></h3>
+        <p class="muted" data-i18n="favEmpty"></p>
+      </div>
+      <p id="fav-nomatch" class="muted" hidden data-i18n="favNoMatch"></p>
+      <ul id="fav-list" class="fav-list"></ul>
+    </section>
+
+    <section class="view" data-view="settings" hidden aria-labelledby="settings-title">
+      <h2 id="settings-title" data-i18n="settingsTitle"></h2>
+      <div class="card settings">
+        <div class="setting">
+          <span class="setting-label" id="font-label" data-i18n="fontSize"></span>
+          <div id="font-steps" class="segmented" role="radiogroup" aria-labelledby="font-label"></div>
+        </div>
+        <div class="setting">
+          <span class="setting-label" id="theme-label" data-i18n="theme"></span>
+          <div id="theme-choices" class="segmented" role="radiogroup" aria-labelledby="theme-label"></div>
+        </div>
+        <div class="setting">
+          <label for="setting-unknown">
+            <span class="setting-label" data-i18n="highlightUnknown"></span>
+            <span class="muted small block" data-i18n="highlightUnknownHint"></span>
+          </label>
+          <input id="setting-unknown" class="switch" type="checkbox" role="switch">
+        </div>
+      </div>
+      <h2 data-i18n="aboutTitle"></h2>
+      <div class="card about">
+        <p data-i18n="aboutText"></p>
+        <ul>
+          <li data-i18n="aboutWiktionary"></li>
+          <li data-i18n="aboutFreedict"></li>
+          <li data-i18n="aboutSimplemma"></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>
