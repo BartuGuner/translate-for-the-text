@@ -21,7 +21,10 @@ fi
 
 if [ ! -f .venv/.installed ]; then
   echo "Installing dependencies from wheelhouse (offline)..."
-  .venv/bin/python -m pip install --no-index --find-links wheelhouse -r requirements.txt
+  if ! .venv/bin/python -m pip install --no-index --find-links wheelhouse -r requirements.txt; then
+    echo "Offline wheels did not match this Python architecture. Downloading matching packages..."
+    .venv/bin/python -m pip install -r requirements.txt
+  fi
   touch .venv/.installed
 fi
 

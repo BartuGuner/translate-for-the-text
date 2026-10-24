@@ -3,12 +3,12 @@ setlocal
 cd /d "%~dp0"
 
 set "PY="
-where py >nul 2>nul && py -3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)" >nul 2>nul && set "PY=py -3"
+where py >nul 2>nul && py -3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)" >nul 2>nul && set "PY=py -3"
 if not defined PY (
-  where python >nul 2>nul && python -c "import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)" >nul 2>nul && set "PY=python"
+  where python >nul 2>nul && python -c "import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)" >nul 2>nul && set "PY=python"
 )
 if not defined PY (
-  echo Python 3.10 or newer was not found. Install it from python.org and tick "Add python.exe to PATH".
+  echo Python 3.9 or newer was not found. Install it from python.org and tick "Add python.exe to PATH".
   pause
   exit /b 1
 )
@@ -20,7 +20,11 @@ if not exist ".venv\Scripts\python.exe" (
 
 if not exist ".venv\.installed" (
   echo Installing dependencies from wheelhouse (offline^)...
-  ".venv\Scripts\python.exe" -m pip install --no-index --find-links wheelhouse -r requirements.txt || goto :fail
+  ".venv\Scripts\python.exe" -m pip install --no-index --find-links wheelhouse -r requirements.txt
+  if errorlevel 1 (
+    echo Offline wheels did not match this Python architecture. Downloading matching packages...
+    ".venv\Scripts\python.exe" -m pip install -r requirements.txt || goto :fail
+  )
   echo ok> ".venv\.installed"
 )
 
